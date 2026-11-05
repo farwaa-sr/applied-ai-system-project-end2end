@@ -32,6 +32,15 @@ flowchart TD
     G -.-> LOG
 
     T[Reliability tests<br/>fixed prompts and edge cases] -.->|runs the pipeline and checks| O
+    T --> TR[Test report<br/>pass rate and failures]
+
+    O --> H{Human review<br/>do the picks and<br/>reasons make sense?}
+    TR --> H
+    H -->|approve| D[Result shown to user]
+    H -->|reject or flag| FB[Feedback notes<br/>used to adjust prompts,<br/>weights, and test cases]
+    FB -.-> L
+    FB -.-> T
+    LOG -.->|reviewed for errors| H
 ```
 
 ## Flow summary
@@ -43,3 +52,13 @@ flowchart TD
 5. The existing scorer ranks songs against that profile.
 6. The LLM explains each pick using only the retrieved song data.
 7. Every step is logged, and a test script checks the pipeline for consistency.
+8. A human reviews the recommendations, the test report and the logs. Approved results go to the user. Flagged results produce feedback that improves the prompts, scoring weights and test cases.
+
+## Where checking happens
+
+| Check | Type | What it catches |
+|---|---|---|
+| Input validation | Automated guardrail | Empty or invalid requests |
+| API fallback | Automated guardrail | LLM failures |
+| Reliability tests | Automated testing | Inconsistent answers, songs not in the catalog |
+| Human review | Human in the loop | Picks or explanations that look wrong or unhelpful |
