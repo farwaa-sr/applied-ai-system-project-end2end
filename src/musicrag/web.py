@@ -16,6 +16,7 @@ from pathlib import Path
 
 from .catalog import Song
 from .env import load_env
+from .links import _plain, clean_title, primary_artist
 from .log import get_logger
 
 log = get_logger("web")
@@ -177,7 +178,11 @@ class FixtureClient:
 
 
 def _same_song(track: "Track", title: str, artist: str) -> bool:
-    return _norm(track.title) == _norm(title) and _norm(artist) in _norm(track.artist)
+    """Same song if the cleaned titles match and the proposed lead artist is credited on the track.
+
+    "Bangarang (feat. Sirah)" matches "Bangarang"; "DVBBS, Borgeous" matches "DVBBS & Borgeous".
+    """
+    return clean_title(track.title) == clean_title(title) and primary_artist(artist) in _plain(track.artist)
 
 
 def verify_candidate(track: Track, catalog: list[Song], already: set) -> tuple[bool, str]:

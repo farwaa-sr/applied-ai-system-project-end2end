@@ -24,10 +24,13 @@ confidence score. It is a learning project, not a production recommender.
   (jazz) because "relaxing at home" outweighed "sad", while the answers-only profile chose blues, a better fit.
 - **Confidence is a heuristic**, built from retrieval similarity, agreement with the mood answer, and the
   best catalog score. It is not a calibrated probability.
-- **Web verification has false negatives.** A suggestion is accepted only if Spotify/MusicBrainz returns an
-  exact title match with the artist. Real songs were rejected in live runs: "Bangarang" and "Tsunami" in the workout
-  trace (probably because Spotify's titles carry "(feat. ...)" suffixes), and an unaccented "Gymnopedie" in an
-  earlier run. Safe but wasteful.
+- **Web verification can still have false negatives.** A suggestion is accepted only if Spotify/MusicBrainz returns
+  the same cleaned title with the lead artist credited. An earlier, stricter version rejected real songs
+  ("Bangarang", "Tsunami", "Turn Down for What") because of "(feat. ...)" suffixes and credit order; I fixed that
+  after the "Show me new ones" test exposed it (see What surprised me). Remixes, live versions and unusual
+  spellings can still be missed. Safe but wasteful.
+- **Playback depends on Spotify.** Each player is a Spotify embed: a short preview unless the listener is signed in
+  to Spotify. Songs without a known Spotify id get a search link instead of a player.
 - **Web results are not curated.** MusicBrainz fallback results can be obscure; Spotify popularity is not used
   for ranking proposals. Explicit content is not filtered.
 - **Dependence on third parties.** Gemini model availability and Spotify access changed during development
@@ -55,7 +58,9 @@ confidence score. It is a learning project, not a production recommender.
   sense I flagged them with "none are familiar". The cause: most catalog songs were invented starter data, so a
   recommender that sounded fine was recommending songs that do not exist. I replaced them with 39 real songs.
 - The verification step rejected songs that exist. I expected it to catch invented songs, and it does, but it
-  also needs fuzzier matching.
+  also needed fuzzier matching. Building "Show me new ones" made this obvious: in set 2 every Gemini proposal was
+  rejected, and the fallback search returned filler tracks ("Gym Workout" by "EDM MUSIC"). Cleaning titles and
+  artists before comparing fixed it.
 - External services were the main source of failures, not my code; the circuit breaker and fallback chain mattered
   more than prompt wording.
 - The first version of the harness hardcoded the "RAG on" result as a pass, so its comparison proved nothing.
@@ -66,7 +71,7 @@ confidence score. It is a learning project, not a production recommender.
 
 | Test | Evaluation criteria | Result |
 |---|---|---|
-| 27 pytest tests | Catalog loading, MCQ validation, retrieval ranking, agent fallbacks, web verification, Streamlit UI (headless) | 27 / 27 pass |
+| 33 pytest tests | Catalog loading, MCQ validation, retrieval ranking, agent fallbacks, web verification, new-set logic, Streamlit UI (headless) | 33 / 33 pass |
 | 6 taste scenarios (harness) | Top pick's genre in an expected set; 5 picks | 6 / 6 pass |
 | Web picks | 2 picks, none already in catalog, source recorded | Pass |
 | Empty / missing / invalid answers | Rejected with a clear message | 3 / 3 pass |

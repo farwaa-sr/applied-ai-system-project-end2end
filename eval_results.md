@@ -24,10 +24,10 @@
 | Scenario | Profile genre/valence (on) | Profile genre/valence (off) | Shared catalog picks | Top pick in expected genres (on / off) |
 |---|---|---|---|---|
 | Late-night study | lofi/0.59 | lofi/0.47 | 3 | yes / yes |
-| Gym workout | pop/0.52 | rock/0.73 | 3 | yes / yes |
+| Gym workout | pop/0.52 | pop/0.73 | 2 | yes / yes |
 | Sad evening at home | jazz/0.5 | blues/0.38 | 2 | yes / yes |
 | Party night | edm/0.79 | pop/0.95 | 2 | yes / yes |
 | Moody night drive | synthwave/0.51 | synthwave/0.48 | 3 | yes / yes |
-| Romantic date night | r&b/0.63 | jazz/0.48 | 5 | yes / no |
+| Romantic date night | r&b/0.63 | pop/0.48 | 4 | yes / no |
 
-Top pick in expected genres: RAG on 6/6, RAG off 5/6. Average shared catalog picks (of 5): 3.0. Average reported confidence: on 0.88, off 0.66 (not a like-for-like score: the no-retrieval profile uses a fixed prior of 0.4).
+Top pick in expected genres: RAG on 6/6, RAG off 5/6. Average shared catalog picks (of 5): 2.67. Average reported confidence: on 0.88, off 0.67 (not a like-for-like score: the no-retrieval profile uses a fixed prior of 0.4).

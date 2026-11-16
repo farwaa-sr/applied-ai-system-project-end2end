@@ -23,7 +23,7 @@ extends that idea.
 |---|---|---|
 | **RAG** | `retriever.py`, `data/profiles/` | TF-IDF search over 10 archetype documents and the song catalog. Retrieved archetypes set the profile's genre, valence and (partly) energy/acousticness, and supply the web search hints. Without retrieval the profile falls back to answers only. |
 | **Agentic workflow** | `agent.py` | One agent picks tools and branches on what it finds: widens retrieval on low confidence, skips or runs web search depending on the novelty answer and a "catalog gap" check, tries the next candidate or source when verification fails, flags low confidence for human review. Every step is written to a trace. |
-| **Reliability / guardrails** | `questions.py`, `web.py`, `profile.py`, `scripts/run_eval.py` | MCQ validation, LLM output validation, web-result verification, API fallbacks, a circuit breaker, logging, 27 unit tests and a 14-check harness. |
+| **Reliability / guardrails** | `questions.py`, `web.py`, `profile.py`, `scripts/run_eval.py` | MCQ validation, LLM output validation, web-result verification, API fallbacks, a circuit breaker, logging, 33 tests and a 14-check harness. |
 
 ## Architecture overview
 
@@ -64,8 +64,19 @@ gitignored; never commit real keys.
 
 ## Run it
 
-**Web UI** (Streamlit): five clickable questions, result cards with Spotify links, the agent's
-reasoning trace, and approve/flag buttons. Sidebar toggles for offline mode and retrieval on/off.
+**Web UI** (Streamlit): a pastel, illustrated interface.
+
+- Five questions as tap-to-select pills, then a profile summary and five song cards.
+- **Every song is playable in the page** through an embedded Spotify player (a short preview, or the full track if
+  you are signed in to Spotify in the browser). Catalog songs use cached Spotify ids in `data/spotify_ids.json`;
+  songs found live on Spotify use their own link; anything else gets a "Find it on Spotify" button.
+- **"Show me new ones"** asks the agent for a fresh set that never repeats a song you have already seen. The trace
+  records the exclusions, and the agent tells Gemini to avoid the songs already shown.
+- "Start over", a collapsible agent trace, and approve/flag review buttons. Works on phone-width screens.
+- Illustrations are drawn in code (`src/musicrag/illustrations.py`), so there are no image files to download.
+
+![Results header](assets/ui_results_top.jpg)
+![Song cards with Spotify players](assets/ui_song_cards.jpg)
 
 ```bash
 streamlit run app.py
@@ -159,7 +170,7 @@ Full output: [`eval_results.md`](eval_results.md). Summary:
 
 | Check group | Result |
 |---|---|
-| Unit tests (`pytest`): catalog loading, MCQ validation, retrieval, agent, web verification, Streamlit UI (headless) | **27 / 27 passed** |
+| Unit tests (`pytest`): catalog loading, MCQ validation, retrieval, agent, web verification, new-set logic, Streamlit UI (headless) | **33 / 33 passed** |
 | Harness (`scripts/run_eval.py`, offline and deterministic): 6 taste scenarios, web verification, novelty rule, conflicting answers, 3 invalid-input cases, simulated LLM outage, simulated web outage | **14 / 14 passed** |
 
 **RAG on vs off** (6 scenarios, from the harness; full table in `eval_results.md`):
@@ -201,7 +212,7 @@ $ python scripts/run_eval.py
 ### Testing summary
 
 - **Worked:** input validation, the fallback chain (LLM outage, web outage), and web verification, which
-  rejected songs a source could not confirm. 27 unit tests and 14 harness checks pass, and the live runs
+  rejected songs a source could not confirm. 33 tests and 14 harness checks pass, and the live runs
   completed with real Gemini and Spotify calls.
 - **Did not work as hoped:** retrieval gave only a small, mixed gain (see the RAG table), and one scenario got
   worse. Verification rejects some real songs because it matches titles and artists strictly. Gemini model names
@@ -218,8 +229,10 @@ $ python scripts/run_eval.py
   branches on results is easier to trace and test.
 - **LLM proposes, the web verifies.** Asking an LLM for songs invites invented titles. A candidate is only shown
   if Spotify/MusicBrainz confirms it exists. Trade-off: real songs with accents or alternate spellings can be
-  rejected (false negatives: "Bangarang" and "Tsunami" are real songs but were not confirmed in the workout
-  trace in `ai_interactions.md`, probably because Spotify's titles carry "(feat. ...)" suffixes).
+  rejected. Testing "Show me new ones" exposed this: Gemini proposed five real songs ("Bangarang", "Tsunami",
+  "Turn Down for What" and others) and every one failed the exact match, so the agent fell back to a loose tag
+  search that returned filler like "Gym Workout". I fixed it by comparing cleaned titles (no "(feat. ...)", accents or
+  punctuation) and the lead artist; the same lookups now confirm, and invented songs still do not.
 - **Pure-Python TF-IDF, not embeddings.** Zero setup and fully reproducible. Trade-off: it matches words, not
   meaning, so it depends on the archetype documents containing the vocabulary users' answers produce.
 - **Deterministic baseline plus LLM refinement.** The system works with no key, and the LLM can never put an
@@ -228,6 +241,9 @@ $ python scripts/run_eval.py
   the CLI, I flagged the result in the review step with the note "none are familiar", which is how I found
   the problem. The catalog is now 39 real songs. Spotify no longer exposes audio features to new apps, so
   the energy, valence, acousticness and tempo values are **my own approximate estimates**, not measured data.
+- **New sets by exclusion.** "Show me new ones" re-runs the agent with the songs already shown excluded, so a set
+  never repeats. The catalog is finite (39 songs), so after several sets the agent runs out, returns fewer picks
+  and says so.
 - **Original scorer kept as-is.** The weights from the first project are unchanged so differences come from the
   new components.
 
@@ -237,6 +253,8 @@ $ python scripts/run_eval.py
 - Retrieval gave a small, mixed gain, and keyword matching can miss meaning.
 - Web verification is strict and rejects some real songs; MusicBrainz results can be obscure.
 - Confidence is a heuristic, not a calibrated probability.
+- Playback is a Spotify embed: a short preview unless you are signed in to Spotify, and picks that came from
+  MusicBrainz or the offline fixtures without a known Spotify id get a search link instead of a player.
 
 See [`model_card.md`](model_card.md) for the full limitations, bias, misuse and reflection.
 
@@ -244,10 +262,12 @@ See [`model_card.md`](model_card.md) for the full limitations, bias, misuse and 
 
 ```
 app.py          Streamlit web UI              run.py   CLI launcher
+.streamlit/     config.toml (pastel theme)
 src/musicrag/   catalog.py questions.py retriever.py profile.py scorer.py llm.py web.py explain.py agent.py cli.py env.py
-data/           songs.csv (39 real songs, hand-estimated features), profiles/ (10 archetype documents)
+                links.py (Spotify embed ids) illustrations.py ui_theme.py
+data/           songs.csv (39 real songs, hand-estimated features), spotify_ids.json (player ids), profiles/ (10 archetype documents)
 tests/          unit tests + fixtures/web_tracks.json (33 recorded, verified tracks)
-scripts/        run_eval.py (harness), record_fixtures.py
+scripts/        run_eval.py (harness), record_fixtures.py, resolve_spotify_ids.py
 diagrams/       architecture.mmd (source), architecture.md, architecture_v1.md
 assets/         earlier (v1) diagram images
 ai_interactions.md   reasoning traces     eval_results.md   harness output     model_card.md   reflection

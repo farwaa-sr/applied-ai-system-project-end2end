@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 
 from .catalog import Song
 from .explain import llm_explanations, template_explanation
+from .links import clean_title
 from .llm import GeminiClient, LLMError
 from .log import get_logger
 from .profile import TasteProfile, answers_only_profile, baseline_profile, refine_with_llm
@@ -36,6 +37,7 @@ class Pick:
     score: float | None = None
     url: str = ""
     source: str = "catalog"
+    mood: str = ""            # used by the UI to choose an illustration
 
 
 @dataclass
@@ -75,11 +77,17 @@ class MusicAgent:
         self.fallback_web = fallback_web if fallback_web is not None else _safe_fixture()
 
     # ------------------------------------------------------------------ main loop
-    def run(self, raw_answers: dict, use_rag: bool = True) -> Result:
+    def run(self, raw_answers: dict, use_rag: bool = True, exclude=None) -> Result:
+        """Recommend songs. `exclude` is an iterable of titles already shown, never repeated (for "new set")."""
         trace, flags = Trace(), []
         self._llm_down = False
         answers = normalize_answers(raw_answers)
         trace.add("validate", "answers accepted: " + ", ".join(f"{k}={v}" for k, v in answers.items()))
+        shown_titles = list(exclude or [])
+        shown = {clean_title(t) for t in shown_titles}
+        if shown:
+            trace.add("exclude", f"{len(shown)} previously shown songs will not be repeated")
+        pool = [s for s in self.songs if clean_title(s.title) not in shown]
 
         # 1. RAG: retrieve archetypes and build the profile
         hits = []
@@ -115,9 +123,10 @@ class MusicAgent:
             trace.add("profile", "retrieval disabled; " + profile.rationale)
 
         # 2. Score the catalog
-        ranked = rank_songs(profile, self.songs, k=TOTAL_PICKS)
-        best_ratio = ranked[0][1] / MAX_SCORE
-        trace.add("score", f"best catalog match {ranked[0][0].title} at {best_ratio:.0%} of max")
+        ranked = rank_songs(profile, pool, k=TOTAL_PICKS)
+        best_ratio = ranked[0][1] / MAX_SCORE if ranked else 0.0
+        trace.add("score", f"best unseen catalog match {ranked[0][0].title} at {best_ratio:.0%} of max"
+                  if ranked else "no unseen catalog songs left")
 
         # 3. Decide about the web
         novelty = option_for(answers, "novelty").value
@@ -129,13 +138,16 @@ class MusicAgent:
         else:
             trace.add("decide", f"novelty='{novelty}' -> fetch {n_web} web song(s)")
 
-        web_picks = self._fetch_web(profile, hits, n_web, trace, flags) if n_web else []
+        web_picks = self._fetch_web(profile, hits, n_web, trace, flags, shown, shown_titles) if n_web else []
         n_catalog = TOTAL_PICKS - len(web_picks)
-        catalog = ranked if n_catalog >= len(ranked) else rank_songs(profile, self.songs, k=n_catalog)
+        catalog = ranked if n_catalog >= len(ranked) else rank_songs(profile, pool, k=n_catalog)
+        if len(catalog) + len(web_picks) < TOTAL_PICKS:
+            flags.append("catalog_exhausted")
+            trace.add("decide", "ran out of unseen songs; returning fewer than 5 picks")
 
         # 4. Grounded explanations
         explanations = self._explain(profile, hits, catalog, trace, flags)
-        picks = [Pick(s.title, s.artist, "catalog", explanations[s.title], score)
+        picks = [Pick(s.title, s.artist, "catalog", explanations[s.title], score, mood=s.mood)
                  for s, score, _ in catalog] + web_picks
 
         # 5. Confidence and review flag
@@ -149,7 +161,7 @@ class MusicAgent:
         return self.llm is not None and not self._llm_down
 
     # ------------------------------------------------------------------ web tool
-    def _fetch_web(self, profile, hits, n_needed, trace, flags) -> list[Pick]:
+    def _fetch_web(self, profile, hits, n_needed, trace, flags, shown=frozenset(), shown_titles=()) -> list[Pick]:
         found: list[Pick] = []
         seen: set = set()
         terms = list(hits[0].doc.search_terms) if hits else [f"{profile.genre} {profile.mood}"]
@@ -158,11 +170,14 @@ class MusicAgent:
             if len(found) >= n_needed:
                 break
             try:
-                tracks = self._candidates(client, profile, terms, trace)
+                tracks = self._candidates(client, profile, terms, trace, shown_titles)
             except WebSearchError as exc:
                 trace.add("web", f"{client.name} failed ({exc}); trying next source")
                 continue
             for track in tracks:
+                if clean_title(track.title) in shown:
+                    trace.add("verify", f"rejected '{track.title}' (already shown in an earlier set)")
+                    continue
                 ok, why = verify_candidate(track, self.songs, seen)
                 if not ok:
                     trace.add("verify", f"rejected '{track.title}' ({why})")
@@ -170,7 +185,7 @@ class MusicAgent:
                 seen.add((" ".join(track.title.lower().split()), " ".join(track.artist.lower().split())))
                 found.append(Pick(track.title, track.artist, "web", (
                     f"Web discovery matching your {profile.mood} {profile.genre} taste; "
-                    f"existence verified via {track.source}."), None, track.url, track.source))
+                    f"existence verified via {track.source}."), None, track.url, track.source, profile.mood))
                 trace.add("verify", f"accepted '{track.title}' by {track.artist} via {track.source}")
                 if len(found) >= n_needed:
                     break
@@ -181,14 +196,14 @@ class MusicAgent:
             trace.add("decide", f"only {len(found)}/{n_needed} web songs found; filling with catalog songs")
         return found
 
-    def _candidates(self, client, profile, terms, trace) -> list[Track]:
+    def _candidates(self, client, profile, terms, trace, avoid=()) -> list[Track]:
         """LLM proposes songs, the web source confirms they exist; tag search is the fallback."""
         out: list[Track] = []
         if self._llm_ready() and client.name != "fixture":
             try:
                 prompt = (
                     "Suggest 5 real, well-known songs (title and artist) that fit this listener profile and "
-                    f"are NOT in this list: {[s.title for s in self.songs]}.\n"
+                    f"are NOT in this list: {[s.title for s in self.songs] + list(avoid)}.\n"
                     f"Profile: {profile.as_dict()}\nStyle hints: {terms}\n"
                     'Return JSON: {"candidates": [{"title": "...", "artist": "..."}]}'
                 )

@@ -121,3 +121,36 @@ def test_verify_rejects_catalog_duplicate_and_bad_tracks(parts):
     assert not verify_candidate(Track("", "X", "u", source="fixture"), songs, set())[0]
     assert not verify_candidate(Track("New", "X", "http://evil.example", source="spotify"), songs, set())[0]
     assert verify_candidate(Track("New", "X", "https://open.spotify.com/track/1"), songs, set())[0]
+
+
+def test_new_set_never_repeats_shown_songs(parts):
+    agent, shown = make(parts), []
+    for _ in range(4):
+        res = agent.run(STUDY, exclude=shown)
+        titles = [p.title for p in res.picks]
+        assert not set(titles) & set(shown)
+        assert len(titles) == len(set(titles))
+        shown += titles
+    assert len(shown) >= 15
+
+
+def test_exhausted_catalog_is_handled_without_crashing(parts):
+    everything = [s.title for s in parts[1]]
+    res = make(parts).run(FAMILIAR, exclude=everything)
+    assert "catalog_exhausted" in res.flags
+    assert all(p.kind == "web" for p in res.picks) and len(res.picks) < 5
+
+
+def test_new_set_trace_mentions_exclusions(parts):
+    res = make(parts).run(STUDY, exclude=["Affection"])
+    assert any(name == "exclude" for name, _ in res.trace.steps)
+    assert "Affection" not in [p.title for p in res.picks]
+
+
+def test_song_matching_ignores_feat_suffixes_and_credit_order():
+    from musicrag.web import Track, _same_song
+    assert _same_song(Track("Bangarang (feat. Sirah)", "Skrillex, Sirah", "u"), "Bangarang", "Skrillex")
+    assert _same_song(Track("Tsunami", "DVBBS, Borgeous", "u"), "Tsunami", "DVBBS & Borgeous")
+    assert _same_song(Track("Gymnopédie No. 1", "Erik Satie", "u"), "Gymnopedie No. 1", "Erik Satie")
+    assert not _same_song(Track("Gym Workout", "EDM MUSIC", "u"), "Sandstorm", "Darude")
+    assert not _same_song(Track("Sandstorm", "Some Cover Band", "u"), "Sandstorm", "Darude")
