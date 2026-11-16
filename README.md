@@ -7,15 +7,16 @@ song actually exists, and explains each pick with a confidence score.
 
 ## Original project
 
-**Music Recommender Simulation** (kept in [`musicrecommendersimulation-starter/`](musicrecommendersimulation-starter/)).
-It was a small content-based recommender: a 23-song `songs.csv` (mostly invented songs), a hand-written user taste profile
-(favorite genre and mood, target energy, acoustic preference), and a weighted scoring rule that rewarded
-songs for being *close* to the target (energy 7.0, valence 2.5, acousticness 1.0, mood 2.0, genre 0.5 points).
-It had no AI components and no way to find songs outside its tiny catalog. This project keeps that scorer
-unchanged (`src/musicrag/scorer.py`) and wraps it in retrieval, an agent loop, web discovery and a
-reliability layer. The course starter also shipped a basic Streamlit form (free-text genre and mood, an
-energy slider; its `src/app.py`, visible in that repo's early history); this project's [`app.py`](app.py)
-extends that idea.
+**Music Recommender Simulation** (kept in [`musicrecommendersimulation-starter/`](musicrecommendersimulation-starter/))
+was a small content-based recommender. From a hand-written taste profile (favorite genre and mood, target energy,
+acoustic preference) it scored every song in a 23-song `songs.csv` with weighted rules that reward being *close* to
+the target (energy 7.0, valence 2.5, acousticness 1.0, mood 2.0, genre 0.5 points) and returned the top matches with a
+score breakdown. It had no AI components and could not recommend anything outside its small, mostly invented catalog.
+
+This project keeps that scorer unchanged (`src/musicrag/scorer.py`) and wraps it in retrieval, an agent loop, web
+discovery and a reliability layer. The course starter also shipped a basic Streamlit form (free-text genre and mood,
+an energy slider; its `src/app.py`, visible in that repo's early history); this project's [`app.py`](app.py) extends
+that idea.
 
 ## What the AI parts do
 
@@ -207,6 +208,28 @@ $ python scripts/run_eval.py
 | Guardrail: LLM outage | falls back, flag set, 5 picks | Pass |
 | Guardrail: web outage | falls back to recorded fixtures | Pass |
 (6 taste scenarios and 3 invalid-input cases in the full table: eval_results.md)
+```
+
+### Sample command execution: unit tests
+
+```
+$ python -m pytest tests -q
+.................................                                        [100%]
+33 passed in 3.7s
+```
+
+### Sample logging output (`logs/musicrag.log`, offline run)
+
+```
+$ python run.py --answers a,a,b,a,a --offline
+INFO musicrag.catalog: Loaded 39 songs from songs.csv
+INFO musicrag.retriever: Loaded 10 archetype documents
+INFO musicrag.agent: [trace] validate: answers accepted: setting=a, energy=a, mood=b, texture=a, novelty=a
+INFO musicrag.agent: [trace] retrieve: top archetypes: Late-night study listener (0.48), Cozy acoustic evening listener (0.24), Romantic slow listener (0.14)
+INFO musicrag.agent: [trace] profile: baseline lofi/chill, energy 0.34, confidence 0.88
+INFO musicrag.agent: [trace] decide: no LLM configured; using rule-based profile
+INFO musicrag.agent: [trace] score: best unseen catalog match Aruarian Dance at 97% of max
+INFO musicrag.agent: [trace] decide: novelty='familiar' -> fetch 0 web song(s)
 ```
 
 ### Testing summary
