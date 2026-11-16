@@ -13,13 +13,13 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-from dotenv import load_dotenv
 
 from .catalog import Song
+from .env import load_env
 from .log import get_logger
 
 log = get_logger("web")
-load_dotenv()
+load_env()
 
 FIXTURE_PATH = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "web_tracks.json"
 

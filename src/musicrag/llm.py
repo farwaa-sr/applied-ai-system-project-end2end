@@ -6,13 +6,13 @@ import time
 import urllib.error
 import urllib.request
 
-from dotenv import load_dotenv
 
+from .env import load_env
 from .log import get_logger
 
 log = get_logger("llm")
 
-load_dotenv()
+load_env()
 ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
 
