@@ -51,8 +51,8 @@ confidence score. It is a learning project, not a production recommender.
 ## What surprised me while testing
 
 - Retrieval's accuracy gain was small: top pick in an expected genre 6/6 with retrieval, 5/6 without (the
-  one miss was the romantic-date scenario). It changed about half of the top-5 list and the profile's genre in
-  3 of 6 cases. I expected a larger gain.
+  one miss was the romantic-date scenario). It changed about two of the five songs and the profile's genre in
+  4 of 6 cases. I expected a larger gain.
 - One scenario got **worse** with retrieval (see Limitations), which a confidence number alone would not reveal.
 - **My own human-review step caught the biggest problem.** I ran the CLI, and when it asked whether the picks made
   sense I flagged them with "none are familiar". The cause: most catalog songs were invented starter data, so a
@@ -63,6 +63,9 @@ confidence score. It is a learning project, not a production recommender.
   artists before comparing fixed it.
 - External services were the main source of failures, not my code; the circuit breaker and fallback chain mattered
   more than prompt wording.
+- While re-checking my numbers I found the RAG-off comparison changed between runs: ties between genres were broken
+  by Python's randomized set order. I made the tie-break alphabetical and confirmed identical output across six hash
+  seeds, so the harness is now truly deterministic.
 - The first version of the harness hardcoded the "RAG on" result as a pass, so its comparison proved nothing.
   Claude caught this while re-reading the output and fixed it to compute real values, which is how it became
   clear that retrieval's effect was small and mixed.

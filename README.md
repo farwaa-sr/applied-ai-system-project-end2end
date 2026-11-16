@@ -178,9 +178,9 @@ Full output: [`eval_results.md`](eval_results.md). Summary:
 
 | Observation | Finding |
 |---|---|
-| Top catalog pick in expected genres | Retrieval on **6/6**, retrieval off **5/6** (off picked `pop` for the romantic-date scenario) |
-| Top-5 overlap between the two modes | 2.7 of 5 on average: retrieval changes about half the list |
-| Profile genre | Retrieval changed it in 3/6 cases (sad evening, party night, romantic date) |
+| Top catalog pick in expected genres | Retrieval on **6/6**, retrieval off **5/6** (off picked `country` for the romantic-date scenario) |
+| Top-5 overlap between the two modes | 2.8 of 5 on average: retrieval changes about two of the five songs |
+| Profile genre | Retrieval changed it in 4/6 cases (sad evening, party night, moody night drive, romantic date) |
 | Where retrieval hurt | "Sad evening at home": retrieval chose `jazz` (cozy archetype dominated by "relaxing at home"); answers-only chose `blues`, which fits "sad" better |
 
 So retrieval helped in one scenario, hurt the genre guess in another, and mostly makes the profile and the

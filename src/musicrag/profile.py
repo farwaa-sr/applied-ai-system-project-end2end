@@ -70,7 +70,8 @@ def answers_only_profile(answers: dict, songs: list[Song]) -> TasteProfile:
     catalog's own songs for that mood. Used to show what RAG adds."""
     mood = option_for(answers, "mood").value
     same_mood = [s for s in songs if s.mood == mood] or songs
-    genre = max({s.genre for s in same_mood}, key=lambda g: sum(s.genre == g for s in same_mood))
+    # sorted() makes ties deterministic (alphabetical); a plain set would pick by hash order, which varies per run
+    genre = max(sorted({s.genre for s in same_mood}), key=lambda g: sum(s.genre == g for s in same_mood))
     return TasteProfile(
         genre=genre, mood=mood,
         energy=round(float(option_for(answers, "energy").value), 2),
