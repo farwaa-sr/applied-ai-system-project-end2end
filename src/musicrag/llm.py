@@ -23,7 +23,7 @@ class LLMError(RuntimeError):
 class GeminiClient:
     def __init__(self, api_key: str | None = None, model: str | None = None, timeout: float = 20.0):
         self.api_key = api_key or os.getenv("GEMINI_API_KEY", "")
-        self.model = model or os.getenv("GEMINI_MODEL", "gemini-flash-latest")
+        self.model = model or os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
         self.timeout = timeout
 
     @property
