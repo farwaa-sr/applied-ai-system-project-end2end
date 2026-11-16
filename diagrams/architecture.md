@@ -10,7 +10,7 @@ flowchart TD
 
     subgraph KB["Knowledge sources (RAG)"]
         A[("10 taste-profile archetype docs<br/>data/profiles/")]
-        C[("songs.csv<br/>23-song catalog")]
+        C[("songs.csv<br/>39-song catalog")]
     end
 
     subgraph AG["Agent loop (agent.py) - plans, acts, checks itself"]

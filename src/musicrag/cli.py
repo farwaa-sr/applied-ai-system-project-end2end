@@ -76,15 +76,20 @@ def save_trace(r: Result, label: str) -> None:
         f.write(block)
 
 
+def save_feedback(r: Result, verdict: str, note: str = "") -> None:
+    """Append a human-review verdict (approved / flagged) to logs/feedback.jsonl."""
+    FEEDBACK_FILE.parent.mkdir(exist_ok=True)
+    with open(FEEDBACK_FILE, "a", encoding="utf-8") as f:
+        f.write(json.dumps({"time": datetime.now(timezone.utc).isoformat(), "answers": r.answers,
+                            "verdict": verdict, "note": note,
+                            "picks": [p.title for p in r.picks]}) + "\n")
+
+
 def human_review(r: Result, answers: dict) -> None:
     reply = input("\nDo these picks make sense? [y = approve / n = flag] > ").strip().lower()
     verdict = "approved" if reply.startswith("y") else "flagged"
     note = input("Optional note: ").strip() if verdict == "flagged" else ""
-    FEEDBACK_FILE.parent.mkdir(exist_ok=True)
-    with open(FEEDBACK_FILE, "a", encoding="utf-8") as f:
-        f.write(json.dumps({"time": datetime.now(timezone.utc).isoformat(), "answers": answers,
-                            "verdict": verdict, "note": note,
-                            "picks": [p.title for p in r.picks]}) + "\n")
+    save_feedback(r, verdict, note)
     print("Thanks, feedback saved." if verdict == "approved" else "Flagged for review. Thanks.")
 
 

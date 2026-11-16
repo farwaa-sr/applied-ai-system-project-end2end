@@ -117,7 +117,7 @@ def test_invalid_answers_raise(parts):
 
 def test_verify_rejects_catalog_duplicate_and_bad_tracks(parts):
     songs = parts[1]
-    assert not verify_candidate(Track("Library Rain", "X", "u", source="fixture"), songs, set())[0]
+    assert not verify_candidate(Track("Smells Like Teen Spirit", "X", "u", source="fixture"), songs, set())[0]
     assert not verify_candidate(Track("", "X", "u", source="fixture"), songs, set())[0]
     assert not verify_candidate(Track("New", "X", "http://evil.example", source="spotify"), songs, set())[0]
     assert verify_candidate(Track("New", "X", "https://open.spotify.com/track/1"), songs, set())[0]

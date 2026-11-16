@@ -8,12 +8,14 @@ song actually exists, and explains each pick with a confidence score.
 ## Original project
 
 **Music Recommender Simulation** (kept in [`musicrecommendersimulation-starter/`](musicrecommendersimulation-starter/)).
-It was a small content-based recommender: a 23-song `songs.csv`, a hand-written user taste profile
+It was a small content-based recommender: a 23-song `songs.csv` (mostly invented songs), a hand-written user taste profile
 (favorite genre and mood, target energy, acoustic preference), and a weighted scoring rule that rewarded
 songs for being *close* to the target (energy 7.0, valence 2.5, acousticness 1.0, mood 2.0, genre 0.5 points).
 It had no AI components and no way to find songs outside its tiny catalog. This project keeps that scorer
 unchanged (`src/musicrag/scorer.py`) and wraps it in retrieval, an agent loop, web discovery and a
-reliability layer.
+reliability layer. The course starter also shipped a basic Streamlit form (free-text genre and mood, an
+energy slider; its `src/app.py`, visible in that repo's early history); this project's [`app.py`](app.py)
+extends that idea.
 
 ## What the AI parts do
 
@@ -21,7 +23,7 @@ reliability layer.
 |---|---|---|
 | **RAG** | `retriever.py`, `data/profiles/` | TF-IDF search over 10 archetype documents and the song catalog. Retrieved archetypes set the profile's genre, valence and (partly) energy/acousticness, and supply the web search hints. Without retrieval the profile falls back to answers only. |
 | **Agentic workflow** | `agent.py` | One agent picks tools and branches on what it finds: widens retrieval on low confidence, skips or runs web search depending on the novelty answer and a "catalog gap" check, tries the next candidate or source when verification fails, flags low confidence for human review. Every step is written to a trace. |
-| **Reliability / guardrails** | `questions.py`, `web.py`, `profile.py`, `scripts/run_eval.py` | MCQ validation, LLM output validation, web-result verification, API fallbacks, a circuit breaker, logging, 24 unit tests and a 14-check harness. |
+| **Reliability / guardrails** | `questions.py`, `web.py`, `profile.py`, `scripts/run_eval.py` | MCQ validation, LLM output validation, web-result verification, API fallbacks, a circuit breaker, logging, 27 unit tests and a 14-check harness. |
 
 ## Architecture overview
 
@@ -61,6 +63,15 @@ gitignored; never commit real keys.
 
 ## Run it
 
+**Web UI** (Streamlit): five clickable questions, result cards with Spotify links, the agent's
+reasoning trace, and approve/flag buttons. Sidebar toggles for offline mode and retrieval on/off.
+
+```bash
+streamlit run app.py
+```
+
+**Command line:**
+
 ```bash
 # interactive (asks the 5 questions, then asks for your review)
 PYTHONPATH=src python -m musicrag
@@ -90,51 +101,48 @@ Question letters: `setting, energy, mood, texture, novelty`. Full reasoning trac
 
 ```
 Taste profile (llm): lofi / focused, energy 0.35, valence 0.55, acousticness 0.85
-Why: The listener's preference for studying and organic, calm sounds aligns perfectly with the 'Late-night study listener' archetype's focus on instrumental-leaning, low-energy music.
-Overall confidence: 0.96   Flags: none
+Why: The listener's preference for studying and organic, calm sounds aligns perfectly with the 'Late-night study listener' archetype, which emphasizes focused, low-energy instrumental music.
+Overall confidence: 0.95   Flags: none
 
-  1. Focus Flow - LoRoom  [catalog 12.5/13]
-     This track provides a steady, rhythmic backdrop that perfectly complements your need for deep concentration and focused work.
-  2. Library Rain - Paper Lanterns  [catalog 10.9/13]
-  3. Midnight Coding - LoRoom  [catalog 10.3/13]
-  4. Wildflower Road - Juniper Lane  [catalog 10.2/13]
-  5. A Walk - Tycho  [web:spotify]
-     https://open.spotify.com/track/0sQNqu37YQQSI3K0ueswyA
+  1. Affection - Jinsang  [catalog 12.5/13]
+     This track provides a steady, low-energy rhythm that creates the perfect background atmosphere for your deep study sessions.
+  2. Aruarian Dance - Nujabes  [catalog 10.7/13]
+  3. Fly Me to the Moon - Frank Sinatra  [catalog 10.4/13]
+  4. Feather - Nujabes  [catalog 10.2/13]
+  5. Gymnopedie No. 1 - Erik Satie, Philippe Entremont  [web:spotify]
+     https://open.spotify.com/track/5NGtFXVpXSvwunEIGeviY3
 ```
 
 **2. Workout** `--answers b,c,d,c,c` (working out, high energy, intense, electronic, surprise me)
 
 ```
-Taste profile (llm): edm / intense, energy 0.95, valence 0.5, acousticness 0.08
-Why: ... aligns with the 'Gym and high-energy workout listener' archetype, while the desire for aggression incorporates elements of the 'Rage and release listener' profile.
-Overall confidence: 0.94   Flags: none
+Taste profile (llm): edm / intense, energy 0.95, valence 0.45, acousticness 0.08
+Why: The profile relies on the 'Gym and high-energy workout listener' archetype ... while incorporating elements of the 'Rage and release' archetype to satisfy the preference for an intense and aggressive mood.
+Overall confidence: 0.92   Flags: none
 
-  1. Storm Runner - Voltline  [catalog 12.2/13]
-  2. Gym Hero - Max Pulse  [catalog 11.7/13]
-  3. Neon Pulse - Voltage Kid  [catalog 10.1/13]
-  4. Animals - Martin Garrix  [web:spotify]
+  1. Smells Like Teen Spirit - Nirvana  [catalog 11.5/13]
+  2. Physical - Dua Lipa  [catalog 10.9/13]
+  3. Levels - Avicii  [catalog 10.5/13]
+  4. Sandstorm - Darude  [web:spotify]
+     https://open.spotify.com/track/6Sy9BUbgFse0n0LPA5lwy5
+  5. Animals - Martin Garrix  [web:spotify]
      https://open.spotify.com/track/0A9mHc7oYUoCECqByV8cQR
-  5. LRAD - Knife Party  [web:musicbrainz]
-     https://musicbrainz.org/recording/9afa8762-2e09-4e2c-ad04-2e6dc1047e32
 ```
 
-The retriever blended **two** archetypes (gym and rage). Spotify confirmed only 1 of Gemini's 5 proposed
-songs, so the agent moved to MusicBrainz for the second pick (see the trace; it also rejected a duplicate).
-Several of the unconfirmed songs are real, so the strict title/artist match produces false negatives
-(see Limitations).
+The retriever blended **two** archetypes (gym and rage), which is why a rock song leads a workout list.
 
 **3. Sad evening at home** `--answers d,a,c,a,b`
 
 ```
 Taste profile (llm): folk / sad, energy 0.35, valence 0.25, acousticness 0.85
-Overall confidence: 0.92   Flags: none
+Overall confidence: 0.87   Flags: none
 
-  1. Rainy Window Blues - Delta Hollis  [catalog 12.1/13]
-  2. Jealous - Labrinth  [catalog 10.2/13]
-  3. Someone Like You - Adele  [catalog 10.0/13]
-  4. Wildflower Road - Juniper Lane  [catalog 10.0/13]
-  5. Holocene - Bon Iver  [web:spotify]
-     https://open.spotify.com/track/35KiiILklye1JRRctaLUb4
+  1. Stormy Monday - T-Bone Walker  [catalog 11.7/13]
+  2. Holocene - Bon Iver  [catalog 10.7/13]
+  3. Jealous - Labrinth  [catalog 10.2/13]
+  4. Someone You Loved - Lewis Capaldi  [catalog 10.0/13]
+  5. The Night We Met - Lord Huron  [web:spotify]
+     https://open.spotify.com/track/5yJaXWIErrrsjQ3J0eR5aK
 ```
 
 **4. Guardrail: bad input**
@@ -150,20 +158,21 @@ Full output: [`eval_results.md`](eval_results.md). Summary:
 
 | Check group | Result |
 |---|---|
-| Unit tests (`pytest`): catalog loading, MCQ validation, retrieval, agent, web verification | **24 / 24 passed** |
+| Unit tests (`pytest`): catalog loading, MCQ validation, retrieval, agent, web verification, Streamlit UI (headless) | **27 / 27 passed** |
 | Harness (`scripts/run_eval.py`, offline and deterministic): 6 taste scenarios, web verification, novelty rule, conflicting answers, 3 invalid-input cases, simulated LLM outage, simulated web outage | **14 / 14 passed** |
 
-**RAG on vs off** (6 scenarios, from the harness):
+**RAG on vs off** (6 scenarios, from the harness; full table in `eval_results.md`):
 
 | Observation | Finding |
 |---|---|
-| Top catalog pick in expected genres | Retrieval on 6/6, retrieval off 6/6. **No accuracy gain on this small catalog.** |
-| Top-5 overlap between the two modes | 3.3 of 5 on average: retrieval changes about a third of the list |
-| Profile genre | Retrieval changed it in 3/6 cases (e.g. party night: `edm` vs `pop`; moody drive: `synthwave` vs `alt pop`) |
+| Top catalog pick in expected genres | Retrieval on **6/6**, retrieval off **5/6** (off picked `pop` for the romantic-date scenario) |
+| Top-5 overlap between the two modes | 2.7 of 5 on average: retrieval changes about half the list |
+| Profile genre | Retrieval changed it in 3/6 cases (sad evening, party night, romantic date) |
 | Where retrieval hurt | "Sad evening at home": retrieval chose `jazz` (cozy archetype dominated by "relaxing at home"); answers-only chose `blues`, which fits "sad" better |
 
-So the honest claim is that retrieval makes the profile and the web search hints more specific and explainable,
-not that it is more accurate on a 23-song catalog.
+So retrieval helped in one scenario, hurt the genre guess in another, and mostly makes the profile and the
+web-search hints more specific and explainable. That is a small, mixed effect on a 39-song catalog, and I
+would not claim more than that.
 
 **Failures seen in live use** (all handled by fallbacks, none crashed): Gemini 2.5 model names returned 404 and
 `gemini-flash-latest` timed out for my key; MusicBrainz returned HTTP 503 several times (retry with backoff,
@@ -183,6 +192,10 @@ agent stops calling it for that run (circuit breaker), instead of waiting throug
   meaning, so it depends on the archetype documents containing the vocabulary users' answers produce.
 - **Deterministic baseline plus LLM refinement.** The system works with no key, and the LLM can never put an
   invalid genre or number into the scorer.
+- **Real songs, estimated features.** My first catalog was the starter's mostly invented songs. When I tried
+  the CLI, I flagged the result in the review step with the note "none are familiar", which is how I found
+  the problem. The catalog is now 39 real songs. Spotify no longer exposes audio features to new apps, so
+  the energy, valence, acousticness and tempo values are **my own approximate estimates**, not measured data.
 - **Original scorer kept as-is.** The weights from the first project are unchanged so differences come from the
   new components.
 
@@ -193,8 +206,9 @@ See [`model_card.md`](model_card.md) for limitations, bias, misuse and reflectio
 ## Project layout
 
 ```
+app.py          Streamlit web UI
 src/musicrag/   catalog.py questions.py retriever.py profile.py scorer.py llm.py web.py explain.py agent.py cli.py
-data/           songs.csv, profiles/ (10 archetype documents)
+data/           songs.csv (39 real songs, hand-estimated features), profiles/ (10 archetype documents)
 tests/          unit tests + fixtures/web_tracks.json (33 recorded, verified tracks)
 scripts/        run_eval.py (harness), record_fixtures.py
 diagrams/       architecture.mmd (source), architecture.md, architecture_v1.md

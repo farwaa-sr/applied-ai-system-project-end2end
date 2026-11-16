@@ -10,7 +10,10 @@ confidence score. It is a learning project, not a production recommender.
 
 ## Limitations and biases
 
-- **Tiny catalog.** 23 songs and 10 archetype documents that I wrote myself. The archetypes encode my own
+- **Tiny catalog with estimated features.** 39 real songs and 10 archetype documents that I wrote myself. Spotify
+  no longer provides audio features to new apps, so each song's energy, valence, danceability, acousticness and
+  tempo are **my approximate hand estimates**, not measured values; a different listener would rate some of them
+  differently, and the scorer inherits that error. The archetypes encode my own
   assumptions about what "studying" or "romantic" music sounds like, so the system reflects one person's
   taste and mostly Western genres. Genres not in the catalog (K-pop, Latin, Afrobeats, etc.) can only reach the
   user through the web step.
@@ -43,10 +46,13 @@ confidence score. It is a learning project, not a production recommender.
 
 ## What surprised me while testing
 
-- Retrieval did **not** improve top-pick accuracy: with and without it, 6/6 scenarios put a sensible genre
-  first. Its effect was on the profile's genre and valence, the list's tail (about 1.7 of 5 songs changed) and
-  the explainability of the result. I expected a larger accuracy gain.
+- Retrieval's accuracy gain was small: top pick in an expected genre 6/6 with retrieval, 5/6 without (the
+  one miss was the romantic-date scenario). It changed about half of the top-5 list and the profile's genre in
+  3 of 6 cases. I expected a larger gain.
 - One scenario got **worse** with retrieval (see Limitations), which a confidence number alone would not reveal.
+- **My own human-review step caught the biggest problem.** I ran the CLI, and when it asked whether the picks made
+  sense I flagged them with "none are familiar". The cause: most catalog songs were invented starter data, so a
+  recommender that sounded fine was recommending songs that do not exist. I replaced them with 39 real songs.
 - The verification step rejected songs that exist. I expected it to catch invented songs, and it does, but it
   also needs fuzzier matching.
 - External services were the main source of failures, not my code; the circuit breaker and fallback chain mattered
@@ -59,13 +65,20 @@ confidence score. It is a learning project, not a production recommender.
 
 | Test | Evaluation criteria | Result |
 |---|---|---|
-| 24 pytest unit tests | Catalog loading, MCQ validation, retrieval ranking, agent fallbacks, web verification | 24 / 24 pass |
+| 27 pytest tests | Catalog loading, MCQ validation, retrieval ranking, agent fallbacks, web verification, Streamlit UI (headless) | 27 / 27 pass |
 | 6 taste scenarios (harness) | Top pick's genre in an expected set; 5 picks | 6 / 6 pass |
 | Web picks | 2 picks, none already in catalog, source recorded | Pass |
 | Empty / missing / invalid answers | Rejected with a clear message | 3 / 3 pass |
 | LLM outage (injected) | Falls back, flag set, 5 picks | Pass |
 | Web outage (injected) | Falls back to recorded fixtures, flag set | Pass |
 | Live run, study scenario | Gemini profile and explanations, Spotify-verified pick | Pass (see README) |
+
+### Human evaluation (my review of live runs)
+
+| Test input (answers) | Evaluation criteria | Result |
+|---|---|---|
+| a,b,e,a,b (study, medium energy, romantic, acoustic, one new find), first catalog | Picks are real songs I recognise | **Fail**: flagged "none are familiar" (invented starter songs) |
+| a,b,e,a,b, after replacing the catalog with 39 real songs | Picks are real songs I recognise | Pass: Fly Me to the Moon, Perfect, Tennessee Whiskey, Best Part, plus Spotify-verified Come Away With Me |
 
 Details in `eval_results.md`; reasoning traces in `ai_interactions.md`. Human review in the CLI records an
 approve/flag verdict to `logs/feedback.jsonl`; I have not collected enough reviews to report numbers.
@@ -79,6 +92,11 @@ several separate LLM "agents", and "LLM proposes, the web confirms" for song dis
 traceable and testable, and the verification step caught invented songs in live runs.
 
 **Suggestions I rejected or changed:**
+- Claude suggested only documenting the invented-songs problem as a limitation. I asked for it to be fixed, and the
+  catalog was replaced with real songs, with the extra cost that the features are estimates (see Limitations).
+- Claude first said the starter project's web UI did not exist, then guessed it had been removed in my own
+  commit. Both were wrong: I pointed to my original repo, and its history shows a course-template `src/app.py`
+  Streamlit form added and then removed by the template's author. The new `app.py` extends that idea.
 - Claude first suggested iTunes Search for the web step. I preferred Spotify. Spotify later returned 403 (it
   needs a Premium account on the app owner), so the final design uses Spotify first with MusicBrainz and recorded
   fixtures as fallbacks.
