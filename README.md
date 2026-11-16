@@ -40,7 +40,8 @@ Full diagram: [`diagrams/architecture.md`](diagrams/architecture.md) (renders on
    exists*. Songs already in the catalog or already picked are rejected. If every source fails, recorded
    fixtures are used and the result is flagged.
 7. **Explain**: Gemini explains each catalog pick using only the supplied song data; titles it invents are dropped.
-8. **Human in the loop**: the CLI asks you to approve or flag the result; flags go to `logs/feedback.jsonl`.
+8. **Human in the loop**: the CLI and the web UI ask you to approve or flag the result; verdicts go to
+   `logs/feedback.jsonl` (gitignored).
 
 ## Setup
 
@@ -74,23 +75,23 @@ streamlit run app.py
 
 ```bash
 # interactive (asks the 5 questions, then asks for your review)
-PYTHONPATH=src python -m musicrag
+python run.py
 
 # non-interactive: one letter per question (setting, energy, mood, texture, novelty)
-PYTHONPATH=src python -m musicrag --answers a,a,b,a,b --trace
+python run.py --answers a,a,b,a,b --trace
 
 # no keys, no network: rule-based + recorded web results
-PYTHONPATH=src python -m musicrag --answers a,a,b,a,b --offline
+python run.py --answers a,a,b,a,b --offline
 
 # ablation: turn retrieval off
-PYTHONPATH=src python -m musicrag --answers a,a,b,a,b --no-rag
+python run.py --answers a,a,b,a,b --no-rag
 
 # tests and reliability harness
 python -m pytest tests -q
 python scripts/run_eval.py
 ```
 
-On PowerShell use `$env:PYTHONPATH="src"` before the commands.
+Run everything from the project root. No `PYTHONPATH` setup is needed.
 
 ## Sample interactions (real runs, live Gemini + Spotify)
 
@@ -109,7 +110,7 @@ Overall confidence: 0.95   Flags: none
   2. Aruarian Dance - Nujabes  [catalog 10.7/13]
   3. Fly Me to the Moon - Frank Sinatra  [catalog 10.4/13]
   4. Feather - Nujabes  [catalog 10.2/13]
-  5. Gymnopedie No. 1 - Erik Satie, Philippe Entremont  [web:spotify]
+  5. Gymnopédie No. 1 - Erik Satie, Philippe Entremont  [web:spotify]
      https://open.spotify.com/track/5NGtFXVpXSvwunEIGeviY3
 ```
 
@@ -148,7 +149,7 @@ Overall confidence: 0.87   Flags: none
 **4. Guardrail: bad input**
 
 ```
-$ python -m musicrag --answers a,a,z,a
+$ python run.py --answers a,a,z,a
 Sorry, I couldn't use those answers: 'mood': 'z' is not one of ['a', 'b', 'c', 'd', 'e', 'f']; 'novelty' is missing
 ```
 
@@ -217,7 +218,8 @@ $ python scripts/run_eval.py
   branches on results is easier to trace and test.
 - **LLM proposes, the web verifies.** Asking an LLM for songs invites invented titles. A candidate is only shown
   if Spotify/MusicBrainz confirms it exists. Trade-off: real songs with accents or alternate spellings can be
-  rejected (a false negative, seen in the trace for "Gymnopédie No. 1").
+  rejected (false negatives: "Bangarang" and "Tsunami" are real songs but were not confirmed in the workout
+  trace in `ai_interactions.md`, probably because Spotify's titles carry "(feat. ...)" suffixes).
 - **Pure-Python TF-IDF, not embeddings.** Zero setup and fully reproducible. Trade-off: it matches words, not
   meaning, so it depends on the archetype documents containing the vocabulary users' answers produce.
 - **Deterministic baseline plus LLM refinement.** The system works with no key, and the LLM can never put an
@@ -231,18 +233,23 @@ $ python scripts/run_eval.py
 
 ## Limitations
 
-See [`model_card.md`](model_card.md) for limitations, bias, misuse and reflection.
+- The catalog is 39 songs, and each song's audio features are my own estimates, not measured data.
+- Retrieval gave a small, mixed gain, and keyword matching can miss meaning.
+- Web verification is strict and rejects some real songs; MusicBrainz results can be obscure.
+- Confidence is a heuristic, not a calibrated probability.
+
+See [`model_card.md`](model_card.md) for the full limitations, bias, misuse and reflection.
 
 ## Project layout
 
 ```
-app.py          Streamlit web UI
-src/musicrag/   catalog.py questions.py retriever.py profile.py scorer.py llm.py web.py explain.py agent.py cli.py
+app.py          Streamlit web UI              run.py   CLI launcher
+src/musicrag/   catalog.py questions.py retriever.py profile.py scorer.py llm.py web.py explain.py agent.py cli.py env.py
 data/           songs.csv (39 real songs, hand-estimated features), profiles/ (10 archetype documents)
 tests/          unit tests + fixtures/web_tracks.json (33 recorded, verified tracks)
 scripts/        run_eval.py (harness), record_fixtures.py
 diagrams/       architecture.mmd (source), architecture.md, architecture_v1.md
-assets/         diagram images
+assets/         earlier (v1) diagram images
 ai_interactions.md   reasoning traces     eval_results.md   harness output     model_card.md   reflection
 ```
 

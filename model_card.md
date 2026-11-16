@@ -25,8 +25,9 @@ confidence score. It is a learning project, not a production recommender.
 - **Confidence is a heuristic**, built from retrieval similarity, agreement with the mood answer, and the
   best catalog score. It is not a calibrated probability.
 - **Web verification has false negatives.** A suggestion is accepted only if Spotify/MusicBrainz returns an
-  exact title match with the artist. Real songs were rejected because of accents ("Gymnopédie"), featured-artist
-  strings, or search ranking (for example "Turn Down for What"). Safe but wasteful.
+  exact title match with the artist. Real songs were rejected in live runs: "Bangarang" and "Tsunami" in the workout
+  trace (probably because Spotify's titles carry "(feat. ...)" suffixes), and an unaccented "Gymnopedie" in an
+  earlier run. Safe but wasteful.
 - **Web results are not curated.** MusicBrainz fallback results can be obscure; Spotify popularity is not used
   for ranking proposals. Explicit content is not filtered.
 - **Dependence on third parties.** Gemini model availability and Spotify access changed during development
@@ -37,7 +38,8 @@ confidence score. It is a learning project, not a production recommender.
 - **Prompt injection:** the user never types free text, so there is no text field to inject into. LLM output is
   validated (genre/mood against the catalog vocabulary, numbers clamped to 0-1) before it reaches the scorer,
   and explanations naming songs outside the picks are dropped.
-- **Hallucinated songs:** no web song is shown unless a web source confirms it exists.
+- **Hallucinated songs:** no web song is shown unless a web source confirms it exists. (The offline fallback shows
+  recorded tracks that were each confirmed on MusicBrainz when recorded, and the result is flagged.)
 - **Secrets:** keys live in a gitignored `.env`; `.env.example` has placeholders only. Because a key was pasted
   into a chat during development it should be rotated.
 - **Residual risk:** low for a music demo. Possible misuse is bulk calls against the Spotify/MusicBrainz APIs;
@@ -57,8 +59,8 @@ confidence score. It is a learning project, not a production recommender.
 - External services were the main source of failures, not my code; the circuit breaker and fallback chain mattered
   more than prompt wording.
 - The first version of the harness hardcoded the "RAG on" result as a pass, so its comparison proved nothing.
-  Claude caught this while re-reading the output and fixed it to compute real values, which is how the
-  no-accuracy-gain result surfaced.
+  Claude caught this while re-reading the output and fixed it to compute real values, which is how it became
+  clear that retrieval's effect was small and mixed.
 
 ## Testing results
 
