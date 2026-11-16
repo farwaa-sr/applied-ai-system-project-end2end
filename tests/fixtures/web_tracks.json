@@ -1,0 +1,234 @@
+{
+  "lofi": [
+    {
+      "title": "Sunset Lover",
+      "artist": "Petit Biscuit",
+      "url": "https://musicbrainz.org/recording/f8258c7b-fe86-4f9b-8fed-41140f9fd655",
+      "popularity": 100
+    },
+    {
+      "title": "Resonance",
+      "artist": "HOME",
+      "url": "https://musicbrainz.org/recording/7dd3a25c-adc0-4c0f-921a-09030913159e",
+      "popularity": 100
+    }
+  ],
+  "ambient": [
+    {
+      "title": "Weightless",
+      "artist": "Marconi Union",
+      "url": "https://musicbrainz.org/recording/36cb35d2-3780-414a-9ef9-fec1e56e2eed",
+      "popularity": 100
+    },
+    {
+      "title": "An Ending (Ascent)",
+      "artist": "Brian Eno",
+      "url": "https://musicbrainz.org/recording/7eed3173-9cd1-4bf0-90b9-4d26f9d9df59",
+      "popularity": 100
+    }
+  ],
+  "pop": [
+    {
+      "title": "Levitating",
+      "artist": "Dua Lipa",
+      "url": "https://musicbrainz.org/recording/4ba5031c-4acb-42be-9ff7-ef57a0cbcb76",
+      "popularity": 100
+    },
+    {
+      "title": "Blinding Lights",
+      "artist": "The Weeknd",
+      "url": "https://musicbrainz.org/recording/1227659f-a933-4549-8fc4-d839b4cd3d45",
+      "popularity": 100
+    }
+  ],
+  "indie": [
+    {
+      "title": "Electric Feel",
+      "artist": "MGMT",
+      "url": "https://musicbrainz.org/recording/4e0501c7-f661-46a0-b4af-97880a45cf30",
+      "popularity": 100
+    },
+    {
+      "title": "Float On",
+      "artist": "Modest Mouse",
+      "url": "https://musicbrainz.org/recording/a5b0ef9e-ba72-4639-9e2c-3827dbf6fefb",
+      "popularity": 100
+    }
+  ],
+  "edm": [
+    {
+      "title": "Titanium",
+      "artist": "David Guetta",
+      "url": "https://musicbrainz.org/recording/f1d13531-c6ab-422f-8d3a-61ac1e7cb68a",
+      "popularity": 100
+    },
+    {
+      "title": "Animals",
+      "artist": "Martin Garrix",
+      "url": "https://musicbrainz.org/recording/903a7187-edee-447d-a8d3-e980bfdba854",
+      "popularity": 100
+    }
+  ],
+  "rock": [
+    {
+      "title": "Seven Nation Army",
+      "artist": "The White Stripes",
+      "url": "https://musicbrainz.org/recording/c62bf30c-4231-4e2b-ba09-9bba15b4f75e",
+      "popularity": 100
+    },
+    {
+      "title": "Mr. Brightside",
+      "artist": "The Killers",
+      "url": "https://musicbrainz.org/recording/b6a4b196-fc04-408b-88b2-e616b7e1dac3",
+      "popularity": 100
+    }
+  ],
+  "metal": [
+    {
+      "title": "Master of Puppets",
+      "artist": "Metallica",
+      "url": "https://musicbrainz.org/recording/efa94d10-b9a6-4cde-b8aa-c61a681ec07a",
+      "popularity": 100
+    }
+  ],
+  "reggae": [
+    {
+      "title": "Three Little Birds",
+      "artist": "Bob Marley",
+      "url": "https://musicbrainz.org/recording/18263700-85ef-45a6-8d5b-b54fff35c525",
+      "popularity": 100
+    },
+    {
+      "title": "Could You Be Loved",
+      "artist": "Bob Marley",
+      "url": "https://musicbrainz.org/recording/084961ea-dc0a-4b83-9fa7-d19a353cd9ed",
+      "popularity": 100
+    }
+  ],
+  "soul": [
+    {
+      "title": "Let's Stay Together",
+      "artist": "Al Green",
+      "url": "https://musicbrainz.org/recording/be610aed-9cc1-4af4-b2de-97e380e9a8c0",
+      "popularity": 100
+    },
+    {
+      "title": "A Change Is Gonna Come",
+      "artist": "Sam Cooke",
+      "url": "https://musicbrainz.org/recording/57a7de15-00c0-4267-af14-a42509289155",
+      "popularity": 100
+    }
+  ],
+  "blues": [
+    {
+      "title": "The Thrill Is Gone",
+      "artist": "B.B. King",
+      "url": "https://musicbrainz.org/recording/a95c7688-2d2f-4623-8690-b5c2fe7f186e",
+      "popularity": 100
+    },
+    {
+      "title": "Pride and Joy",
+      "artist": "Stevie Ray Vaughan",
+      "url": "https://musicbrainz.org/recording/8017f9b8-36b1-41c2-bc3d-df45d33475c7",
+      "popularity": 100
+    }
+  ],
+  "classical": [
+    {
+      "title": "Clair de Lune",
+      "artist": "Claude Debussy",
+      "url": "https://musicbrainz.org/recording/63219644-766d-4a04-9ad6-92a7cbe172a3",
+      "popularity": 100
+    },
+    {
+      "title": "Gymnopédie no. 1",
+      "artist": "Erik Satie",
+      "url": "https://musicbrainz.org/recording/45518b1d-c05f-4c9c-ad3f-f848db8d0710",
+      "popularity": 100
+    }
+  ],
+  "jazz": [
+    {
+      "title": "Take Five",
+      "artist": "The Dave Brubeck Quartet",
+      "url": "https://musicbrainz.org/recording/33703d34-b7d9-4cc8-8c40-93f22461703b",
+      "popularity": 100
+    },
+    {
+      "title": "So What",
+      "artist": "Miles Davis",
+      "url": "https://musicbrainz.org/recording/7b76be83-a77a-4a9d-ac64-9d5b5bc87820",
+      "popularity": 100
+    }
+  ],
+  "folk": [
+    {
+      "title": "Fast Car",
+      "artist": "Tracy Chapman",
+      "url": "https://musicbrainz.org/recording/e898eab0-540c-4d36-b304-0ed21b03de43",
+      "popularity": 100
+    },
+    {
+      "title": "Skinny Love",
+      "artist": "Bon Iver",
+      "url": "https://musicbrainz.org/recording/259afe6c-a50d-4ac9-89aa-c11825bb76bb",
+      "popularity": 100
+    }
+  ],
+  "country": [
+    {
+      "title": "Jolene",
+      "artist": "Dolly Parton",
+      "url": "https://musicbrainz.org/recording/096dcdcc-3209-433a-a2bb-cafc9caeac81",
+      "popularity": 100
+    },
+    {
+      "title": "Take Me Home, Country Roads",
+      "artist": "John Denver",
+      "url": "https://musicbrainz.org/recording/4fa81a25-9cd8-4818-bff0-4686049499d7",
+      "popularity": 100
+    }
+  ],
+  "synthwave": [
+    {
+      "title": "Nightcall",
+      "artist": "Kavinsky",
+      "url": "https://musicbrainz.org/recording/ff5f32a5-0e74-4feb-a5ff-51b94272efeb",
+      "popularity": 100
+    },
+    {
+      "title": "A Real Hero",
+      "artist": "College, Electric Youth",
+      "url": "https://musicbrainz.org/recording/620adea0-6a59-4c6f-a389-7751ee531bc3",
+      "popularity": 93
+    }
+  ],
+  "hip hop": [
+    {
+      "title": "Lose Yourself",
+      "artist": "Eminem",
+      "url": "https://musicbrainz.org/recording/c56f3c12-d3dc-46e8-b650-b5fdec97aefe",
+      "popularity": 100
+    },
+    {
+      "title": "HUMBLE.",
+      "artist": "Kendrick Lamar",
+      "url": "https://musicbrainz.org/recording/e9c6dcc8-6c03-439e-bbda-67402d530353",
+      "popularity": 100
+    }
+  ],
+  "r&b": [
+    {
+      "title": "Adorn",
+      "artist": "Miguel",
+      "url": "https://musicbrainz.org/recording/6a1d1b4b-a06a-4b09-86a2-eff0322c1460",
+      "popularity": 100
+    },
+    {
+      "title": "Earned It",
+      "artist": "The Weeknd",
+      "url": "https://musicbrainz.org/recording/39fc6173-b249-4f1b-9a30-9983c62d69cd",
+      "popularity": 100
+    }
+  ]
+}
