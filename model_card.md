@@ -1,7 +1,6 @@
 # Model Card: Agentic RAG Music Concierge
 
-Base project: **Music Recommender Simulation**. Draft written with Claude Code during the project; edit
-anything here so it is in your own words before submitting.
+Base project: **Music Recommender Simulation** (my Module 1-3 project).
 
 ## Intended use
 
@@ -85,25 +84,27 @@ approve/flag verdict to `logs/feedback.jsonl`; I have not collected enough revie
 
 ## Collaboration with AI
 
-I used Claude Code as a pair programmer for design discussion and implementation.
+I used Claude Code as a pair programmer. The idea was mine: multiple-choice questions, agents that work out a
+taste profile, RAG to fetch similar profiles, and a web search for a song to recommend. Claude helped turn that
+into a concrete design and wrote most of the code and tests. I ran the system, reviewed the output, and made the
+decisions about what to keep.
 
 **Suggestion I accepted:** Claude proposed one agent with tools (retrieve, score, web search, verify) instead of
-several separate LLM "agents", and "LLM proposes, the web confirms" for song discovery. It kept the design
-traceable and testable, and the verification step caught invented songs in live runs.
+several separate LLM "agents", and "the LLM proposes songs, the web source must confirm they exist". I accepted it
+because it kept my idea but removed the risk of recommending invented songs. In the live traces, the agent
+rejects songs that Spotify or MusicBrainz cannot confirm.
 
 **Suggestions I rejected or changed:**
-- Claude suggested only documenting the invented-songs problem as a limitation. I asked for it to be fixed, and the
-  catalog was replaced with real songs, with the extra cost that the features are estimates (see Limitations).
-- Claude first said the starter project's web UI did not exist, then guessed it had been removed in my own
-  commit. Both were wrong: I pointed to my original repo, and its history shows a course-template `src/app.py`
-  Streamlit form added and then removed by the template's author. The new `app.py` extends that idea.
-- Claude first suggested iTunes Search for the web step. I preferred Spotify. Spotify later returned 403 (it
-  needs a Premium account on the app owner), so the final design uses Spotify first with MusicBrainz and recorded
-  fixtures as fallbacks.
-- Claude's first RAG pitch assumed scikit-learn or embeddings; the implementation uses a small pure-Python TF-IDF
-  instead, to avoid extra dependencies and keep runs reproducible, at the cost of semantic matching.
-- Claude's first harness hardcoded a passing result for the RAG-on case. Claude spotted it on review and
-  replaced it with a computed value, which exposed that retrieval gave no accuracy gain. (An example of an AI
-  suggestion that was wrong as first written.)
+- Claude suggested iTunes Search for the web step. I preferred Spotify. Spotify later returned 403 until my account
+  had Premium, so the final design uses Spotify first, with MusicBrainz and recorded fixtures as fallbacks.
+- When my review flagged "none are familiar", Claude suggested only documenting the invented-songs problem as a
+  limitation. I asked for it to be fixed, so the catalog was replaced with 39 real songs. The cost is that the
+  audio features are now my estimates (see Limitations).
+- Claude told me the starter project had no web UI. That was wrong: I pointed it to my original repo, whose
+  history shows a course-template Streamlit form that was later removed. We built a new `app.py` that extends it.
+- Claude's first evaluation harness hardcoded a passing result for the "retrieval on" case, which made the RAG
+  comparison meaningless. Claude caught it on re-reading the output and replaced it with a computed value, which
+  is how the small, mixed effect of retrieval showed up.
 
-_Reviewer note: replace these with your own recollection of what you accepted and rejected if it differs._
+What I took from this: AI was fast at scaffolding and I could move quickly, but it was confidently wrong more than
+once (the UI claim, the harness), so I had to check its claims against the real repo and the real output.

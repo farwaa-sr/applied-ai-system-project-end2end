@@ -248,15 +248,15 @@ ai_interactions.md   reasoning traces     eval_results.md   harness output     m
 
 ## Reflection
 
-This project taught me that an "AI feature" is mostly the engineering around the model. The Gemini call was the
-easy part; the work was validating what it returns, checking its suggestions against a real source, and
-deciding what the system does when a service fails. It also taught me to measure before claiming: my own
-comparison showed retrieval helping less than I expected, and my review step found a data problem I had not
-thought to test for. Keeping a human check and honest numbers in the loop made the system more trustworthy
-than a polished demo would have.
+Building this taught me that the model call is the smallest part of an AI system. My idea was simple: ask five
+multiple-choice questions, let an agent work out which taste profile fits, retrieve similar profiles with RAG, and
+search the web for a new song. Most of the work was making that trustworthy: validating what Gemini returns,
+making Spotify confirm that every recommended song really exists, and deciding what happens when a service
+fails. Services did fail while I built it (Gemini model errors and timeouts, MusicBrainz 503s, Spotify 403s), so
+testing the failure paths mattered as much as testing the happy path.
 
-_Draft written with Claude Code; edit it so it is in your own voice before submitting._
-
-## Demo
-
-Loom walkthrough: _add link here_
+Two results surprised me. Retrieval helped less than I expected: it improved one scenario and made another
+worse. And when I ran the CLI myself and flagged the result with "none are familiar", I found that most of the
+catalog was invented starter data, a problem none of my automated tests had checked for. I replaced it with real
+songs. The lasting lessons are to measure before claiming a feature works, to keep a human check in the loop,
+and to verify what an AI tells me instead of taking it at face value.
