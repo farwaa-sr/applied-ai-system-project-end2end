@@ -179,6 +179,36 @@ would not claim more than that.
 then the next source); Spotify returned 403 until the account had Premium. After the first Gemini failure the
 agent stops calling it for that run (circuit breaker), instead of waiting through repeated timeouts.
 
+### Sample command execution: reliability harness
+
+```
+$ python scripts/run_eval.py
+**14/14 checks passed**
+
+| Test | Expectation | Result |
+|---|---|---|
+| Taste: Late-night study | top pick genre in ['ambient', 'lofi']; 5 picks | Pass |
+| Taste: Gym workout | top pick genre in ['edm', 'metal', 'pop', 'rock']; 5 picks | Pass |
+| Taste: Sad evening at home | top pick genre in ['blues', 'classical', 'folk', 'soul']; 5 picks | Pass |
+| Web picks verified | 2 web picks, none in catalog, all have a source | Pass |
+| Guardrail: Invalid choice | rejected with InvalidAnswers | Pass |
+| Guardrail: LLM outage | falls back, flag set, 5 picks | Pass |
+| Guardrail: web outage | falls back to recorded fixtures | Pass |
+(6 taste scenarios and 3 invalid-input cases in the full table: eval_results.md)
+```
+
+### Testing summary
+
+- **Worked:** input validation, the fallback chain (LLM outage, web outage), and web verification, which
+  rejected songs a source could not confirm. 27 unit tests and 14 harness checks pass, and the live runs
+  completed with real Gemini and Spotify calls.
+- **Did not work as hoped:** retrieval gave only a small, mixed gain (see the RAG table), and one scenario got
+  worse. Verification rejects some real songs because it matches titles and artists strictly. Gemini model names
+  and Spotify access failed at various points during development.
+- **Learned:** the failures that mattered came from outside services and from the data (invented songs, found
+  by my own review step), not from the model's wording. Testing the failure paths mattered as much as testing
+  the happy path.
+
 ## Design decisions and trade-offs
 
 - **Multiple choice instead of free text.** Cheap to validate, testable, and nothing to prompt-inject. The cost
@@ -215,6 +245,17 @@ diagrams/       architecture.mmd (source), architecture.md, architecture_v1.md
 assets/         diagram images
 ai_interactions.md   reasoning traces     eval_results.md   harness output     model_card.md   reflection
 ```
+
+## Reflection
+
+This project taught me that an "AI feature" is mostly the engineering around the model. The Gemini call was the
+easy part; the work was validating what it returns, checking its suggestions against a real source, and
+deciding what the system does when a service fails. It also taught me to measure before claiming: my own
+comparison showed retrieval helping less than I expected, and my review step found a data problem I had not
+thought to test for. Keeping a human check and honest numbers in the loop made the system more trustworthy
+than a polished demo would have.
+
+_Draft written with Claude Code; edit it so it is in your own voice before submitting._
 
 ## Demo
 
