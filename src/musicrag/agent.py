@@ -169,7 +169,7 @@ class MusicAgent:
                     continue
                 seen.add((" ".join(track.title.lower().split()), " ".join(track.artist.lower().split())))
                 found.append(Pick(track.title, track.artist, "web", (
-                    f"Found on the web for a {profile.mood} {profile.genre} taste; "
+                    f"Web discovery matching your {profile.mood} {profile.genre} taste; "
                     f"existence verified via {track.source}."), None, track.url, track.source))
                 trace.add("verify", f"accepted '{track.title}' by {track.artist} via {track.source}")
                 if len(found) >= n_needed:

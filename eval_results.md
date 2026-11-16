@@ -24,9 +24,9 @@
 | Scenario | Profile genre/valence (on) | Profile genre/valence (off) | Shared catalog picks | Top pick in expected genres (on / off) |
 |---|---|---|---|---|
 | Late-night study | lofi/0.59 | lofi/0.6 | 4 | yes / yes |
-| Gym workout | pop/0.52 | pop/0.62 | 4 | yes / yes |
+| Gym workout | pop/0.52 | rock/0.62 | 4 | yes / yes |
 | Sad evening at home | jazz/0.5 | blues/0.22 | 3 | yes / yes |
-| Party night | edm/0.79 | pop/0.82 | 2 | yes / yes |
+| Party night | edm/0.79 | indie pop/0.82 | 2 | yes / yes |
 | Moody night drive | synthwave/0.51 | alt pop/0.53 | 4 | yes / yes |
 | Romantic date night | r&b/0.63 | r&b/0.66 | 3 | yes / yes |
 
