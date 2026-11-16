@@ -99,6 +99,11 @@ taste profile, RAG to fetch similar profiles, and a web search for a song to rec
 into a concrete design and wrote most of the code and tests. I ran the system, reviewed the output, and made the
 decisions about what to keep.
 
+**How I used it.** Design: I described the product idea and asked for options, then chose between them (for example
+Spotify over iTunes). Prompting: I gave short, goal-level requests ("replace the invented songs with real ones",
+"add a play button and a way to get new songs") and corrected it when it was wrong. Debugging: I pasted errors
+(a missing `dotenv` module), ran the app myself, and flagged bad output in the review step, which led to fixes.
+
 **Suggestion I accepted:** Claude proposed one agent with tools (retrieve, score, web search, verify) instead of
 several separate LLM "agents", and "the LLM proposes songs, the web source must confirm they exist". I accepted it
 because it kept my idea but removed the risk of recommending invented songs. In the live traces, the agent
@@ -118,3 +123,15 @@ rejects songs that Spotify or MusicBrainz cannot confirm.
 
 What I took from this: AI was fast at scaffolding and I could move quickly, but it was confidently wrong more than
 once (the UI claim, the harness), so I had to check its claims against the real repo and the real output.
+
+## Future improvements
+
+- **Better retrieval:** replace TF-IDF with embeddings and compare the two with the same harness, since retrieval's
+  gain was small and keyword matching misses meaning.
+- **Fairer song verification:** match on stable ids (for example ISRC or Spotify ids) with a confidence score, to cut the
+  false negatives caused by titles and credits.
+- **Real audio features:** replace my hand estimates with measured data from a licensed source, or average several raters.
+- **Wider catalog and archetypes:** more genres, languages and regions, and a check of how often each is recommended.
+- **More human review:** collect more approve/flag verdicts, report agreement between reviewers, and use them to adjust
+  archetypes and scoring weights.
+- **Before any public deployment:** request limits, caching of Spotify and Gemini calls, and a privacy note on feedback logs.

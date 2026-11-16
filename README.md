@@ -165,6 +165,15 @@ $ python run.py --answers a,a,z,a
 Sorry, I couldn't use those answers: 'mood': 'z' is not one of ['a', 'b', 'c', 'd', 'e', 'f']; 'novelty' is missing
 ```
 
+**5. Guardrail: an invented song is rejected**
+
+Input: a song Gemini proposes. Behavior: it is looked up on Spotify (then MusicBrainz). Result: shown only if confirmed.
+
+```
+Sandstorm by Darude -> Track(title='Sandstorm', artist='Darude', url='https://open.spotify.com/track/6Sy9BUbgFse0n0LPA5lwy5', ...)   confirmed, can be shown
+Totally Invented Song by Nobody Real -> None                                                                                         not found, never shown
+```
+
 ## Reliability and evaluation
 
 Full output: [`eval_results.md`](eval_results.md). Summary:

@@ -42,6 +42,7 @@ flowchart TD
     W --> X
     X --> CF
     CF --> O["Top 5 picks with reasons<br/>and confidence"]
+    O --> SHOW["Results shown to the user<br/>right away"]
     O --> UI["Web UI: pastel cards,<br/>Spotify player per song"]
     UI -->|"Show me new ones:<br/>exclude songs already shown"| Q
 
@@ -53,7 +54,7 @@ flowchart TD
     O --> H{"Human review<br/>do the picks make sense?"}
     TR --> H
     LOG -.-> H
-    H -->|approve| D["Shown to user"]
+    H -->|approve| D["Kept as a good example"]
     H -->|flag| FB["logs/feedback.jsonl<br/>adjust archetypes, weights, tests"]
     FB -.-> T
 ```
